@@ -1,78 +1,78 @@
-// ══════════════════════════════════════
-// SYNCHRONISATION FIREBASE EN TEMPS RÉEL
-// ══════════════════════════════════════
+// firebase-sync.js
+// Synchronisation temps réel avec Firebase Realtime Database
+// Ce fichier gère : lecture initiale, écoute des changements, écriture des modifications
 
-let lastSavedContent = '';
-let isSyncing = false;
+// ─── Vérification que Firebase est bien chargé ───────────────────────────────
+if (typeof firebase === 'undefined' || typeof db === 'undefined') {
+  console.error('❌ Firebase non chargé. Vérifiez que firebase-config.js est bien inclus APRÈS les CDN Firebase dans index.html');
+} else {
+  console.log('✅ Firebase connecté');
+  initFirebaseSync();
+}
 
-// Charger les données depuis Firebase au démarrage
-function loadDataFromFirebase() {
-  carteRef.once('value', snapshot => {
-    if (snapshot.val() && snapshot.val().html) {
-      console.log('📥 Données chargées depuis Firebase');
-      const data = snapshot.val();
-      lastSavedContent = data.html;
-      // On ne remplace pas le HTML au chargement pour éviter les conflits
-      // La version locale est la source de vérité
+// ─── Référence racine dans la base ───────────────────────────────────────────
+// Toutes les données de la carte sont stockées sous /carte dans Firebase
+const REF = 'carte';
+
+// ─── Initialisation principale ────────────────────────────────────────────────
+function initFirebaseSync() {
+
+  // 1. Écoute en temps réel : dès qu'une donnée change dans Firebase,
+  //    on met à jour le DOM immédiatement pour TOUS les visiteurs
+  db.ref(REF).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      console.log('🔄 Données reçues depuis Firebase, mise à jour de la carte...');
+      applyDataToDOM(data);
     } else {
-      console.log('ℹ️ Première utilisation - sauvegarde initiale');
-      saveDataToFirebase();
+      console.log('ℹ️ Aucune donnée dans Firebase — affichage des valeurs par défaut du HTML');
+    }
+  }, (error) => {
+    console.error('❌ Erreur lecture Firebase:', error.message);
+  });
+}
+
+// ─── Appliquer les données Firebase au DOM ───────────────────────────────────
+// Chaque élément éditable a un attribut data-firebase-key unique
+// Firebase stocke {cle: valeur} et on met à jour le texte de l'élément correspondant
+function applyDataToDOM(data) {
+  Object.entries(data).forEach(([key, value]) => {
+    const el = document.querySelector(`[data-fk="${key}"]`);
+    if (el) {
+      el.textContent = value;
     }
   });
 }
 
-// Sauvegarder les données vers Firebase
-function saveDataToFirebase() {
-  if (isSyncing) return; // Éviter les sauvegarde en cascade
-  
-  isSyncing = true;
-  const carteBody = document.body.innerHTML;
-  const timestamp = new Date().toISOString();
-  
-  carteRef.set({
-    html: carteBody,
-    lastUpdated: timestamp,
-    lastUpdatedBy: 'RushAngers-User'
-  }).then(() => {
-    console.log('✅ Données sauvegardées sur Firebase');
-    lastSavedContent = carteBody;
-    isSyncing = false;
-    toast('✅ Modifications synchronisées');
-  }).catch(error => {
-    console.error('❌ Erreur lors de la sauvegarde Firebase :', error);
-    isSyncing = false;
-    toast('⚠️ Erreur de synchronisation');
-  });
+// ─── Sauvegarder une modification vers Firebase ──────────────────────────────
+// Appelée à chaque fois que l'utilisateur finit de modifier un champ (onblur)
+function saveToFirebase(key, value) {
+  if (typeof db === 'undefined') return;
+
+  db.ref(`${REF}/${key}`).set(value)
+    .then(() => {
+      console.log(`✅ Sauvegardé: ${key} = "${value}"`);
+      showToast('✅ Modifié pour tout le monde !');
+    })
+    .catch((error) => {
+      console.error(`❌ Erreur écriture Firebase (${key}):`, error.message);
+      showToast('❌ Erreur de sauvegarde — vérifiez les règles Firebase');
+    });
 }
 
-// Écouter les changements en temps réel (pour les autres navigateurs)
-function listenForChanges() {
-  carteRef.on('value', snapshot => {
-    if (snapshot.val() && snapshot.val().html) {
-      const data = snapshot.val();
-      // Vérifier si les changements viennent de notre navigateur
-      if (data.html !== lastSavedContent && !editMode) {
-        console.log('🔄 Mise à jour détectée depuis un autre navigateur');
-        // Les changements seront visibles au prochain rechargement ou on peut faire :
-        // location.reload(); // Décommenter pour rechargement auto
-      }
-    }
-  });
+// ─── Sauvegarder la suppression d'un produit ─────────────────────────────────
+function deleteFromFirebase(key) {
+  if (typeof db === 'undefined') return;
+  db.ref(`${REF}/${key}`).remove()
+    .then(() => console.log(`🗑️ Supprimé: ${key}`))
+    .catch((err) => console.error('❌ Erreur suppression:', err.message));
 }
 
-// Initialiser Firebase au chargement de la page
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    // Vérifier que Firebase est bien chargé
-    if (typeof firebase === 'undefined') {
-      console.error('❌ Firebase n\'est pas chargé. Vérifiez les imports CDN.');
-      return;
-    }
-    
-    loadDataFromFirebase();
-    listenForChanges();
-    console.log('🟢 Système de synchronisation Firebase activé');
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation Firebase :', error);
-  }
-});
+// ─── Sauvegarder un nouveau produit ──────────────────────────────────────────
+function saveNewProduct(gridId, nom, desc, prix) {
+  if (typeof db === 'undefined') return;
+  const key = `product_${gridId}_${Date.now()}`;
+  db.ref(`${REF}/${key}_nom`).set(nom);
+  db.ref(`${REF}/${key}_desc`).set(desc);
+  db.ref(`${REF}/${key}_prix`).set(prix);
+}
