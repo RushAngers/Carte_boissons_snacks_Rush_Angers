@@ -52,11 +52,11 @@ function saveToFirebase(key, value) {
   db.ref(`${REF}/${key}`).set(value)
     .then(() => {
       console.log(`✅ Sauvegardé: ${key} = "${value}"`);
-      showToast('✅ Modifié pour tout le monde !');
+      toast('✅ Modifié pour tout le monde !');
     })
     .catch((error) => {
       console.error(`❌ Erreur écriture Firebase (${key}):`, error.message);
-      showToast('❌ Erreur de sauvegarde — vérifiez les règles Firebase');
+      toast('❌ Erreur — vérifiez les règles Firebase');
     });
 }
 
