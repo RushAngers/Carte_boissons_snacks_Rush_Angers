@@ -1,31 +1,26 @@
 // firebase-sync.js
 // Synchronisation temps réel avec Firebase Realtime Database
-// Ce fichier gère : lecture initiale, écoute des changements, écriture des modifications
+
+// ─── Référence racine — DOIT être déclarée EN PREMIER ────────────────────────
+const REF = 'carte';
 
 // ─── Vérification que Firebase est bien chargé ───────────────────────────────
 if (typeof firebase === 'undefined' || typeof db === 'undefined') {
-  console.error('❌ Firebase non chargé. Vérifiez que firebase-config.js est bien inclus APRÈS les CDN Firebase dans index.html');
+  console.error('❌ Firebase non chargé. Vérifiez les CDN dans index.html');
 } else {
   console.log('✅ Firebase connecté');
   initFirebaseSync();
 }
 
-// ─── Référence racine dans la base ───────────────────────────────────────────
-// Toutes les données de la carte sont stockées sous /carte dans Firebase
-const REF = 'carte';
-
-// ─── Initialisation principale ────────────────────────────────────────────────
+// ─── Écoute en temps réel ────────────────────────────────────────────────────
 function initFirebaseSync() {
-
-  // 1. Écoute en temps réel : dès qu'une donnée change dans Firebase,
-  //    on met à jour le DOM immédiatement pour TOUS les visiteurs
   db.ref(REF).on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
-      console.log('🔄 Données reçues depuis Firebase, mise à jour de la carte...');
+      console.log('🔄 Mise à jour depuis Firebase...');
       applyDataToDOM(data);
     } else {
-      console.log('ℹ️ Aucune donnée dans Firebase — affichage des valeurs par défaut du HTML');
+      console.log('ℹ️ Firebase vide — valeurs HTML par défaut affichées');
     }
   }, (error) => {
     console.error('❌ Erreur lecture Firebase:', error.message);
@@ -33,34 +28,28 @@ function initFirebaseSync() {
 }
 
 // ─── Appliquer les données Firebase au DOM ───────────────────────────────────
-// Chaque élément éditable a un attribut data-firebase-key unique
-// Firebase stocke {cle: valeur} et on met à jour le texte de l'élément correspondant
 function applyDataToDOM(data) {
   Object.entries(data).forEach(([key, value]) => {
     const el = document.querySelector(`[data-fk="${key}"]`);
-    if (el) {
-      el.textContent = value;
-    }
+    if (el) el.textContent = value;
   });
 }
 
 // ─── Sauvegarder une modification vers Firebase ──────────────────────────────
-// Appelée à chaque fois que l'utilisateur finit de modifier un champ (onblur)
 function saveToFirebase(key, value) {
   if (typeof db === 'undefined') return;
-
   db.ref(`${REF}/${key}`).set(value)
     .then(() => {
       console.log(`✅ Sauvegardé: ${key} = "${value}"`);
       toast('✅ Modifié pour tout le monde !');
     })
     .catch((error) => {
-      console.error(`❌ Erreur écriture Firebase (${key}):`, error.message);
+      console.error(`❌ Erreur Firebase (${key}):`, error.message);
       toast('❌ Erreur — vérifiez les règles Firebase');
     });
 }
 
-// ─── Sauvegarder la suppression d'un produit ─────────────────────────────────
+// ─── Supprimer une clé Firebase ──────────────────────────────────────────────
 function deleteFromFirebase(key) {
   if (typeof db === 'undefined') return;
   db.ref(`${REF}/${key}`).remove()
