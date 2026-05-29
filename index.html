@@ -225,6 +225,140 @@ footer strong{color:var(--rose-f)}
 
 #ve-selector { position:fixed; bottom:5rem; left:50%; transform:translateX(-50%); background:var(--rose-f); border-radius:50px; padding:.4rem .9rem; z-index:400; box-shadow:0 4px 20px rgba(168,0,106,.4); align-items:center; gap:.5rem; display:none; }
 
+
+/* ══ STATUT PRODUIT ══ */
+.prod-status {
+  display: none;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .18rem .5rem;
+  border-radius: 50px;
+  margin-bottom: .4rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.prod-status.rupture  { display: inline-block; background: #fee; color: #c00; }
+.prod-status.a-venir  { display: inline-block; background: var(--bleu-l); color: var(--bleu-f); }
+.edit-mode .prod-status-btns { display: flex !important; }
+.prod-status-btns {
+  display: none;
+  gap: .25rem;
+  margin-bottom: .35rem;
+  flex-wrap: wrap;
+}
+.psb {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  padding: .15rem .45rem;
+  font-size: .6rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+  transition: all .15s;
+}
+.psb:hover { background: #e0e0e0; }
+.psb.active-rupture { background: #fee; border-color: #faa; color: #c00; }
+.psb.active-avenir  { background: var(--bleu-l); border-color: var(--bleu); color: var(--bleu-f); }
+
+/* ══ CATÉGORIES DYNAMIQUES ══ */
+.dyn-section {
+  padding-bottom: 1rem;
+}
+/* Tab catégories custom */
+.cat-tab-btn {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 50px;
+  padding: .55rem 1.3rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: .86rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  position: relative;
+}
+.cat-tab-btn.active { background: var(--rose); color: white; border-color: var(--rose); }
+.cat-tab-btn .cat-del-btn {
+  display: none;
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 16px; height: 16px;
+  background: #c00;
+  color: white;
+  border-radius: 50%;
+  font-size: .6rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+.edit-mode .cat-tab-btn .cat-del-btn { display: flex; }
+
+/* Add cat button */
+#add-cat-btn {
+  display: none;
+  background: transparent;
+  border: 2px dashed rgba(236,0,140,.4);
+  border-radius: 50px;
+  padding: .45rem 1rem;
+  font-size: .82rem;
+  color: var(--rose-f);
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 500;
+  transition: all .15s;
+}
+#add-cat-btn:hover { background: var(--rose-l); }
+.edit-mode #add-cat-btn { display: inline-block; }
+
+/* ══ OVERLAY MODAL ══ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem;
+  width: 90%;
+  max-width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-box h3 { color: var(--rose-f); font-size: 1rem; margin-bottom: .8rem; }
+.modal-box input, .modal-box select {
+  width: 100%;
+  border: 1.5px solid var(--rose-l);
+  border-radius: 8px;
+  padding: .6rem;
+  font-size: .9rem;
+  font-family: "DM Sans", sans-serif;
+  outline: none;
+  margin-bottom: .6rem;
+}
+.modal-box input:focus, .modal-box select:focus { border-color: var(--rose); }
+.modal-btns { display: flex; gap: .5rem; }
+.modal-btn {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: .6rem;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+}
+.modal-btn.confirm { background: var(--rose); color: white; }
+.modal-btn.cancel  { background: #eee; color: #555; }
+
 </style>
 </head>
 <body>
@@ -269,10 +403,42 @@ footer strong{color:var(--rose-f)}
   <p class="sub editable-text" data-fk="hdr_sous">Boissons &amp; Snacking — Sélection éco-responsable</p>
 </header>
 
-<nav class="main-nav">
-  <button class="nav-btn active" onclick="showSec('boissons',this)">🍹 Boissons</button>
-  <button class="nav-btn" onclick="showSec('snacks',this)">🍫 Snacking</button>
+<nav class="main-nav" id="main-nav">
+  <button class="nav-btn cat-tab-btn active" data-sec="sec-boissons" onclick="showSecById('sec-boissons',this)">🍹 Boissons</button>
+  <button class="nav-btn cat-tab-btn" data-sec="sec-snacks" onclick="showSecById('sec-snacks',this)">🍫 Snacking</button>
+  <div id="dyn-tabs"></div>
+  <button id="add-cat-btn" onclick="openAddCatModal()">＋ Catégorie</button>
 </nav>
+
+<!-- Modal ajout catégorie -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal-box">
+    <h3>➕ Nouvelle catégorie</h3>
+    <input type="text" id="cat-name-input" placeholder="Nom (ex: Goodies)" maxlength="30">
+    <input type="text" id="cat-emoji-input" placeholder="Emoji (ex: 👕)" maxlength="4">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeAddCatModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="confirmAddCat()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal statut produit -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal-box">
+    <h3>📋 Statut du produit</h3>
+    <select id="status-select">
+      <option value="">Disponible (normal)</option>
+      <option value="rupture">🔴 En rupture de stock</option>
+      <option value="a-venir">🔵 À venir</option>
+    </select>
+    <input type="text" id="status-text" placeholder="Texte optionnel (ex: dispo le 15/01)" maxlength="40">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeStatusModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="confirmStatus()">Appliquer</button>
+    </div>
+  </div>
+</div>
 
 <!-- BOISSONS -->
 <div id="sec-boissons" class="section visible">
@@ -304,6 +470,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍋</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="lim_press_nom">Limonade Pression</div>
         <div class="prod-sous e" data-fk="lim_press_sous">Li'Mousse</div>
@@ -312,6 +482,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍎</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="lim_eph_nom">Limonade Éphémère</div>
         <div class="prod-desc e" data-fk="lim_eph_desc">Pomme / Houblon · 33cL</div>
@@ -320,6 +494,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🌿</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="lim_verv_nom">Limonade Verveine</div>
         <div class="prod-desc e" data-fk="lim_verv_desc">Infusion verveine peu sucrée · citron jaune · 33cL</div>
@@ -336,6 +514,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍇</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="jus_raisin_nom">Pur Jus de Raisin Cabernet</div>
         <div class="prod-desc e" data-fk="jus_raisin_desc">100% Cabernet, sans sucre ajouté · 25cL</div>
@@ -352,6 +534,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🥤</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="cocori_nom">Cocoricola</div>
         <div class="prod-desc e" data-fk="cocori_desc">Cola artisanal français · 33cL</div>
@@ -367,6 +553,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍵</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="the_vert_nom">Thé Vert Pêche</div>
         <div class="prod-desc e" data-fk="the_vert_desc">Infusion thé vert BIO &amp; purée de pêche · 25cL</div>
@@ -375,6 +565,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🫧</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="yang_nom">Mocktail Madame Yang</div>
         <div class="prod-desc e" data-fk="yang_desc">Framboise · Litchi · Baies Roses · 25cL</div>
@@ -383,6 +577,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍊</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="orange_nom">Jus d'Orange Radieuse</div>
         <div class="prod-desc e" data-fk="orange_desc">Nuances de fleur d'oranger · 25cL</div>
@@ -415,6 +613,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍺</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="glouglou_nom">Glouglou</div>
         <div class="prod-desc e" data-fk="glouglou_desc">Blonde au Sarrasin</div>
@@ -423,6 +625,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍺</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="eph_press_nom">Éphémère</div>
         <div class="prod-desc e" data-fk="eph_press_desc">IPA Carotte · Clémentine · Citron</div>
@@ -435,6 +641,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🌿</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="romarin_nom">Romarin Triple</div>
         <div class="prod-desc e" data-fk="romarin_desc">Bière aromatisée au romarin</div>
@@ -443,6 +653,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍑</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="eph_btl_nom">Éphémère</div>
         <div class="prod-desc e" data-fk="eph_btl_desc">Gose Pêche de vigne · Mélisse</div>
@@ -451,6 +665,10 @@ footer strong{color:var(--rose-f)}
       <div class="product-card">
         <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div>
         <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🌾</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns">
+          <button class="psb" onclick="openStatusModal(this)">📋 Statut</button>
+        </div>
         <div class="bio-pill">BIO</div>
         <div class="prod-name e" data-fk="tartinale_nom">Tartin'Ale</div>
         <div class="prod-desc e" data-fk="tartinale_desc">Ambrée au pain de boulangerie</div>
@@ -670,7 +888,14 @@ function deactivateEdit() {
 // ══════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════
-function showSec(n,b){document.querySelectorAll(".section").forEach(function(s){s.classList.remove("visible")});document.querySelectorAll(".nav-btn").forEach(function(x){x.classList.remove("active")});document.getElementById("sec-"+n).classList.add("visible");b.classList.add("active")}
+function showSec(n,b){showSecById("sec-"+n,b);}
+function showSecById(secId,btn){
+  document.querySelectorAll(".section").forEach(function(s){s.classList.remove("visible")});
+  document.querySelectorAll(".cat-tab-btn,.nav-btn").forEach(function(x){x.classList.remove("active")});
+  var sec=document.getElementById(secId);
+  if(sec) sec.classList.add("visible");
+  if(btn) btn.classList.add("active");
+}
 function showSub(n,b){document.querySelectorAll("#sec-boissons .sub-s").forEach(function(s){s.classList.remove("visible")});document.querySelectorAll(".sub-btn").forEach(function(x){x.classList.remove("active")});document.getElementById("sub-"+n).classList.add("visible");b.classList.add("active")}
 function showSnk(n,b){document.querySelectorAll("#sec-snacks .sub-s").forEach(function(s){s.classList.remove("visible")});document.querySelectorAll(".snk-btn").forEach(function(x){x.classList.remove("active")});document.getElementById("snk-"+n).classList.add("visible");b.classList.add("active")}
 function toggleSirops(){var p=document.getElementById("sirops-panel");var a=document.getElementById("sarr");p.classList.toggle("open");a.textContent=p.classList.contains("open")?"▲":"▼"}
@@ -715,7 +940,7 @@ function triggerUpload(wrap){
 function rmCard(btn){if(!editMode)return;if(confirm("Supprimer ce produit ?")){btn.closest(".product-card").remove();toast("Supprimé")}}
 function rmClassic(btn){btn.closest(".classic-item").remove()}
 
-// addCard et addSoft définis plus bas
+
 
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show")},2500)}
 
@@ -737,102 +962,14 @@ function initEditableTexts() {
 }
 
 // Appliquer les données Firebase — texte ET images
-function applyAllData(data) {
-  Object.entries(data).forEach(function(entry) {
-    var key = entry[0], value = entry[1];
-    // Images produits
-    if (key.endsWith('_img') && !key.startsWith('ve_')) {
-      var prodKey = key.replace('_img','');
-      var anyEl = document.querySelector('[data-fk^="' + prodKey + '_"]');
-      if (anyEl) {
-        var card = anyEl.closest('.product-card');
-        if (card) {
-          var wrap = card.querySelector('.prod-img');
-          if (wrap) {
-            wrap.innerHTML = '<img src="' + value + '" alt="photo"><div class="prod-img-btn">📷 Changer</div>';
-            wrap.dataset.fk = key;
-          }
-        }
-      }
-      return;
-    }
-    // Logos custom
-    if (key === 've_ve-rush_img') { var i=document.getElementById('rush-img'); if(i) i.src=value; return; }
-    if (key === 've_ve-eclair_img') { var i=document.getElementById('eclair-img'); if(i) i.src=value; return; }
-    // Positions visuelles
-    if (key.startsWith('ve_ve-')) { return; } // gérées par veLoadSaved
-    // Textes (y compris editable-text et .e)
-    var el = document.querySelector('[data-fk="' + key + '"]');
-    if (el) {
-      if (el.classList.contains('editable-text')) {
-        el.innerHTML = value;
-      } else {
-        el.textContent = value;
-      }
-    }
-  });
-  veLoadSaved(data);
-}
+
 
 // ══════════════════════════════════════════════════════
 // NOUVEAUX PRODUITS — sync Firebase
 // ══════════════════════════════════════════════════════
-function addCard(gridId, emoji) {
-  var g = document.getElementById(gridId);
-  if (!g) return;
-  var uid = 'prod_' + Date.now();
-  var d = document.createElement('div');
-  d.className = 'product-card';
-  d.dataset.uid = uid;
-  d.innerHTML =
-    '<div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button>' +
-    '<button class="ceb del" onclick="rmCard(this)">✕</button></div>' +
-    '<div class="prod-img" onclick="imgClick(this)">' +
-      '<div class="prod-img-ph">' + emoji + '</div>' +
-      '<div class="prod-img-btn">📷 Photo</div>' +
-    '</div>' +
-    '<div class="prod-name e" data-fk="' + uid + '_nom" contenteditable="true">Nouveau produit</div>' +
-    '<div class="prod-desc e" data-fk="' + uid + '_desc" contenteditable="true">Description</div>' +
-    '<div class="prod-prices">' +
-      '<span class="ptag main e" data-fk="' + uid + '_prix" contenteditable="true">0,00€</span>' +
-    '</div>';
-  // Listeners blur
-  d.querySelectorAll('.e').forEach(function(el) {
-    el.addEventListener('blur', function() {
-      var k = this.dataset.fk, v = this.textContent.trim();
-      if (k && v) saveToFirebase(k, v);
-    });
-  });
-  g.appendChild(d);
-  // Sauver dans Firebase : nouveau produit dans sa grille
-  saveToFirebase('grid_' + gridId + '_' + uid, JSON.stringify({
-    gridId: gridId, emoji: emoji, uid: uid
-  }));
-  d.querySelector('.prod-name').focus();
-  toast('Produit ajouté ✅');
-}
 
-function addSoft() {
-  var l = document.getElementById('classic-list');
-  var uid = 'soft_' + Date.now();
-  var d = document.createElement('div');
-  d.className = 'classic-item';
-  d.innerHTML =
-    '<span class="classic-name e" data-fk="' + uid + '_nom" contenteditable="true">Nouveau soft</span>' +
-    '<span style="display:flex;align-items:center">' +
-      '<span class="classic-price e" data-fk="' + uid + '_prix" contenteditable="true">2,90€</span>' +
-      '<button class="classic-del" style="display:inline-block" onclick="rmClassic(this)">✕</button>' +
-    '</span>';
-  d.querySelectorAll('.e').forEach(function(el) {
-    el.addEventListener('blur', function() {
-      var k = this.dataset.fk, v = this.textContent.trim();
-      if (k && v) saveToFirebase(k, v);
-    });
-  });
-  l.appendChild(d);
-  d.querySelector('.e').focus();
-  toast('Soft ajouté ✅');
-}
+
+
 
 // ══════════════════════════════════════════════════════
 // ÉDITEUR VISUEL
@@ -1042,6 +1179,338 @@ document.addEventListener('DOMContentLoaded', function() {
   }, {passive:false});
   document.addEventListener('touchend', function() { veDragging=false; });
 });
+
+
+// ══════════════════════════════════════════════════════════
+// CATÉGORIES DYNAMIQUES
+// ══════════════════════════════════════════════════════════
+var dynCats = {}; // {id: {name, emoji, grids:[{id,label}]}}
+
+function openAddCatModal() {
+  document.getElementById('addCatModal').classList.add('open');
+  document.getElementById('cat-name-input').value = '';
+  document.getElementById('cat-emoji-input').value = '';
+  setTimeout(function(){ document.getElementById('cat-name-input').focus(); }, 80);
+}
+function closeAddCatModal() {
+  document.getElementById('addCatModal').classList.remove('open');
+}
+function confirmAddCat() {
+  var name = document.getElementById('cat-name-input').value.trim();
+  var emoji = document.getElementById('cat-emoji-input').value.trim() || '📦';
+  if (!name) { document.getElementById('cat-name-input').focus(); return; }
+  var catId = 'cat_' + Date.now();
+  var catData = { name: name, emoji: emoji, grids: [] };
+  dynCats[catId] = catData;
+  renderDynCat(catId, catData);
+  // Sauver dans Firebase
+  db.ref(REF + '/dyn_cats/' + catId).set(catData);
+  closeAddCatModal();
+  toast('Catégorie "' + name + '" créée !');
+}
+
+function renderDynCat(catId, catData) {
+  // 1. Tab dans la nav
+  var nav = document.getElementById('dyn-tabs');
+  var tab = document.createElement('button');
+  tab.className = 'nav-btn cat-tab-btn';
+  tab.dataset.sec = 'sec-' + catId;
+  var delBtn = document.createElement('span');
+  delBtn.className = 'cat-del-btn';
+  delBtn.textContent = '✕';
+  delBtn.onclick = function(e) { e.stopPropagation(); deleteDynCat(catId, tab, sec); };
+  tab.appendChild(document.createTextNode(catData.emoji + ' ' + catData.name));
+  tab.appendChild(delBtn);
+  tab.onclick = function(e) {
+    if (e.target === delBtn) return;
+    showSecById('sec-' + catId, tab);
+  };
+  nav.appendChild(tab);
+
+  // 2. Section
+  var sec = document.createElement('div');
+  sec.id = 'sec-' + catId;
+  sec.className = 'section dyn-section';
+
+  // En-tête de section
+  var heading = document.createElement('div');
+  heading.style.cssText = 'padding:.8rem 1rem .2rem;font-family:"Playfair Display",serif;font-size:1.1rem;color:var(--rose-f)';
+  heading.innerHTML = catData.emoji + ' ' + catData.name;
+  sec.appendChild(heading);
+
+  // Grille principale
+  var gridId = catId + '_main';
+  var grid = document.createElement('div');
+  grid.id = gridId;
+  grid.className = 'products-grid';
+  sec.appendChild(grid);
+
+  var addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.textContent = '+ Ajouter un produit';
+  addBtn.onclick = function() { addCard(gridId, catData.emoji); };
+  sec.appendChild(addBtn);
+
+  // Insérer avant le footer
+  var footer = document.querySelector('footer');
+  footer.parentNode.insertBefore(sec, footer);
+
+  // Recharger les produits existants
+  if (catData.grids) {
+    catData.grids.forEach(function(g) {
+      // handled via applyAllData
+    });
+  }
+}
+
+function deleteDynCat(catId, tabEl, secEl) {
+  if (!confirm('Supprimer cette catégorie et tous ses produits ?')) return;
+  db.ref(REF + '/dyn_cats/' + catId).remove();
+  if (tabEl) tabEl.remove();
+  if (secEl) secEl.remove();
+  delete dynCats[catId];
+  // Revenir à Boissons
+  showSecById('sec-boissons', document.querySelector('.cat-tab-btn'));
+  toast('Catégorie supprimée');
+}
+
+// ══════════════════════════════════════════════════════════
+// STATUT PRODUIT
+// ══════════════════════════════════════════════════════════
+var _statusTargetCard = null;
+
+function openStatusModal(btn) {
+  if (!editMode) return;
+  _statusTargetCard = btn.closest('.product-card');
+  var statusEl = _statusTargetCard.querySelector('.prod-status');
+  var current = statusEl ? statusEl.className.replace('prod-status','').trim() : '';
+  var textEl = statusEl ? statusEl.textContent : '';
+  document.getElementById('status-select').value = current || '';
+  document.getElementById('status-text').value = textEl || '';
+  document.getElementById('statusModal').classList.add('open');
+}
+function closeStatusModal() {
+  document.getElementById('statusModal').classList.remove('open');
+  _statusTargetCard = null;
+}
+function confirmStatus() {
+  if (!_statusTargetCard) return;
+  var val  = document.getElementById('status-select').value;
+  var text = document.getElementById('status-text').value.trim();
+  var statusEl = _statusTargetCard.querySelector('.prod-status');
+  if (!statusEl) { closeStatusModal(); return; }
+
+  // Appliquer visuellement
+  statusEl.className = 'prod-status ' + val;
+  statusEl.textContent = text || (val === 'rupture' ? '🔴 Rupture de stock' : val === 'a-venir' ? '🔵 À venir' : '');
+
+  // Mettre à jour style carte
+  _statusTargetCard.style.opacity = val === 'rupture' ? '.55' : '1';
+
+  // Bouton statut visuel
+  var psb = _statusTargetCard.querySelector('.psb');
+  if (psb) {
+    psb.className = 'psb' + (val ? ' active-' + val.replace('a-venir','avenir') : '');
+  }
+
+  // Sauver dans Firebase via la clé du produit
+  var fkEl = _statusTargetCard.querySelector('[data-fk]');
+  if (fkEl) {
+    var prodKey = fkEl.dataset.fk.replace(/_[^_]+$/, '');
+    saveToFirebase(prodKey + '_status', val);
+    saveToFirebase(prodKey + '_status_text', text);
+  }
+  closeStatusModal();
+  toast('Statut mis à jour !');
+}
+
+// ══════════════════════════════════════════════════════════
+// AJOUT PRODUIT — version corrigée avec Firebase
+// ══════════════════════════════════════════════════════════
+function addCard(gridId, emoji) {
+  var g = document.getElementById(gridId);
+  if (!g) return;
+  var uid = 'prod_' + Date.now();
+  createCardInGrid(g, uid, emoji, 'Nouveau produit', 'Description', '0,00€', '', '');
+  // Sauvegarder dans Firebase : la structure complète du nouveau produit
+  var prodData = {
+    gridId: gridId,
+    emoji: emoji,
+    nom: 'Nouveau produit',
+    desc: 'Description',
+    prix: '0,00€',
+    status: '',
+    statusText: ''
+  };
+  db.ref(REF + '/products/' + uid).set(prodData)
+    .then(function() { toast('Produit ajouté et sauvegardé !'); })
+    .catch(function(e) { toast('Erreur: ' + e.message); });
+}
+
+function createCardInGrid(g, uid, emoji, nom, desc, prix, status, statusText) {
+  var d = document.createElement('div');
+  d.className = 'product-card';
+  d.dataset.uid = uid;
+  if (status === 'rupture') d.style.opacity = '.55';
+
+  var statusClass = status ? 'prod-status ' + status : 'prod-status';
+  var statusDisplay = statusText || (status === 'rupture' ? '🔴 Rupture de stock' : status === 'a-venir' ? '🔵 À venir' : '');
+  var psbClass = 'psb' + (status === 'rupture' ? ' active-rupture' : status === 'a-venir' ? ' active-avenir' : '');
+
+  d.innerHTML =
+    '<div class="cedit">' +
+      '<button class="ceb" onclick="upImg(this)">📷</button>' +
+      '<button class="ceb del" onclick="rmCard(this)">✕</button>' +
+    '</div>' +
+    '<div class="prod-img" onclick="imgClick(this)">' +
+      '<div class="prod-img-ph">' + emoji + '</div>' +
+      '<div class="prod-img-btn">📷 Photo</div>' +
+    '</div>' +
+    '<div class="' + statusClass + '">' + statusDisplay + '</div>' +
+    '<div class="prod-status-btns">' +
+      '<button class="' + psbClass + '" onclick="openStatusModal(this)">📋 Statut</button>' +
+    '</div>' +
+    '<div class="prod-name e" data-fk="' + uid + '_nom" contenteditable="' + (editMode ? 'true' : 'false') + '">' + nom + '</div>' +
+    '<div class="prod-desc e" data-fk="' + uid + '_desc" contenteditable="' + (editMode ? 'true' : 'false') + '">' + desc + '</div>' +
+    '<div class="prod-prices">' +
+      '<span class="ptag main e" data-fk="' + uid + '_prix" contenteditable="' + (editMode ? 'true' : 'false') + '">' + prix + '</span>' +
+    '</div>';
+
+  // Listeners Firebase
+  d.querySelectorAll('.e').forEach(function(el) {
+    if (!el.dataset.listenerAdded) {
+      el.dataset.listenerAdded = '1';
+      el.addEventListener('blur', function() {
+        var k = this.dataset.fk, v = this.textContent.trim();
+        if (k && v) {
+          saveToFirebase(k, v);
+          // Mettre à jour aussi le champ dans /products/uid
+          var field = k.split('_').pop();
+          db.ref(REF + '/products/' + uid + '/' + field).set(v);
+        }
+      });
+    }
+  });
+
+  g.appendChild(d);
+  var nameEl = d.querySelector('.prod-name');
+  if (nameEl && editMode) nameEl.focus();
+}
+
+function addSoft() {
+  var l = document.getElementById('classic-list');
+  var uid = 'soft_' + Date.now();
+  var d = document.createElement('div');
+  d.className = 'classic-item';
+  d.innerHTML =
+    '<span class="classic-name e" data-fk="' + uid + '_nom" contenteditable="true">Nouveau soft</span>' +
+    '<span style="display:flex;align-items:center">' +
+      '<span class="classic-price e" data-fk="' + uid + '_prix" contenteditable="true">2,90€</span>' +
+      '<button class="classic-del" style="display:inline-block" onclick="rmClassic(this)">✕</button>' +
+    '</span>';
+  d.querySelectorAll('.e').forEach(function(el) {
+    el.addEventListener('blur', function() {
+      var k = this.dataset.fk, v = this.textContent.trim();
+      if (k && v) saveToFirebase(k, v);
+    });
+  });
+  l.appendChild(d);
+  saveToFirebase('soft_' + uid + '_nom', 'Nouveau soft');
+  saveToFirebase('soft_' + uid + '_prix', '2,90€');
+  d.querySelector('.e').focus();
+  toast('Soft ajouté !');
+}
+
+// ══════════════════════════════════════════════════════════
+// APPLY ALL DATA — version complète avec produits + cats + statuts
+// ══════════════════════════════════════════════════════════
+function applyAllData(data) {
+  // 1. Catégories dynamiques
+  if (data.dyn_cats) {
+    Object.entries(data.dyn_cats).forEach(function(e) {
+      var catId = e[0], catData = e[1];
+      if (!dynCats[catId]) {
+        dynCats[catId] = catData;
+        renderDynCat(catId, catData);
+      }
+    });
+  }
+
+  // 2. Produits dynamiques (ajoutés en mode édition)
+  if (data.products) {
+    Object.entries(data.products).forEach(function(e) {
+      var uid = e[0], p = e[1];
+      if (!document.querySelector('[data-uid="' + uid + '"]')) {
+        var g = document.getElementById(p.gridId);
+        if (g) {
+          createCardInGrid(g, uid, p.emoji || '📦',
+            p.nom || 'Produit', p.desc || '', p.prix || '0,00€',
+            p.status || '', p.statusText || '');
+        }
+      }
+    });
+  }
+
+  // 3. Textes, images, statuts
+  Object.entries(data).forEach(function(entry) {
+    var key = entry[0], value = entry[1];
+    if (key === 'dyn_cats' || key === 'products') return;
+
+    // Statut produit
+    if (key.endsWith('_status') && !key.endsWith('_status_text')) {
+      var prodKey = key.replace('_status', '');
+      var anyEl = document.querySelector('[data-fk^="' + prodKey + '_"]');
+      if (anyEl) {
+        var card = anyEl.closest('.product-card');
+        if (card) {
+          var st = card.querySelector('.prod-status');
+          var textKey = prodKey + '_status_text';
+          var stText = data[textKey] || (value === 'rupture' ? '🔴 Rupture de stock' : value === 'a-venir' ? '🔵 À venir' : '');
+          if (st) {
+            st.className = 'prod-status ' + (value || '');
+            st.textContent = stText;
+          }
+          card.style.opacity = value === 'rupture' ? '.55' : '1';
+          var psb = card.querySelector('.psb');
+          if (psb) psb.className = 'psb' + (value === 'rupture' ? ' active-rupture' : value === 'a-venir' ? ' active-avenir' : '');
+        }
+      }
+      return;
+    }
+    if (key.endsWith('_status_text')) return;
+
+    // Images produits
+    if (key.endsWith('_img') && !key.startsWith('ve_')) {
+      var prodKey2 = key.replace('_img', '');
+      var anyEl2 = document.querySelector('[data-fk^="' + prodKey2 + '_"]');
+      if (anyEl2) {
+        var card2 = anyEl2.closest('.product-card');
+        if (card2) {
+          var wrap = card2.querySelector('.prod-img');
+          if (wrap) {
+            wrap.innerHTML = '<img src="' + value + '" alt="photo"><div class="prod-img-btn">📷 Changer</div>';
+            wrap.dataset.fk = key;
+          }
+        }
+      }
+      return;
+    }
+
+    // Logos custom
+    if (key === 've_ve-rush_img')   { var i=document.getElementById('rush-img');   if(i) i.src=value; return; }
+    if (key === 've_ve-eclair_img') { var i=document.getElementById('eclair-img'); if(i) i.src=value; return; }
+    if (key.startsWith('ve_ve-'))   { return; }
+
+    // Textes (editable-text et .e)
+    var el = document.querySelector('[data-fk="' + key + '"]');
+    if (el) {
+      if (el.classList.contains('editable-text')) el.innerHTML = value;
+      else el.textContent = value;
+    }
+  });
+
+  veLoadSaved(data);
+}
 
 </script>
 </body>
