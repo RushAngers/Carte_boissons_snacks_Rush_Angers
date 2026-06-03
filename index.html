@@ -487,6 +487,8 @@ footer strong{color:var(--rose-f)}
 <nav class="main-nav" id="main-nav">
   <button class="nav-btn cat-tab-btn active" data-sec="sec-boissons" onclick="showSecById('sec-boissons',this)">🍹 Boissons</button>
   <button class="nav-btn cat-tab-btn" data-sec="sec-snacks" onclick="showSecById('sec-snacks',this)">🍫 Snacking</button>
+  <button class="nav-btn cat-tab-btn" data-sec="sec-jeux" onclick="showSecById('sec-jeux',this)">🎲 Jeux</button>
+  <button class="nav-btn cat-tab-btn" data-sec="sec-promos" onclick="showSecById('sec-promos',this)">🔥 Promos</button>
   <div id="dyn-tabs"></div>
   <button id="add-cat-btn" onclick="openAddCatModal()">＋ Catégorie</button>
 </nav>
@@ -786,10 +788,10 @@ footer strong{color:var(--rose-f)}
       <div><div class="sup-name e" data-fk="sup_FC_nom">Flavie's &amp; Co</div><div class="sup-loc e" data-fk="sup_FC_loc">Biscuiterie artisanale · Plérin (22190)</div></div>
     </div>
     <div class="products-grid" id="g-cookies">
-      <div class="product-card"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍪</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck1_nom">Cookie Cœur Caramel Beurre Salé</div><div class="prod-desc e" data-fk="ck1_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck1_prix">2,99€</span></div></div>
-      <div class="product-card"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍪</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck2_nom">Cookie Cœur Spéculoos</div><div class="prod-desc e" data-fk="ck2_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck2_prix">2,99€</span></div></div>
-      <div class="product-card"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍫</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck3_nom">Cookie Tout Choco — Pâte à Tartiner</div><div class="prod-desc e" data-fk="ck3_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck3_prix">2,99€</span></div></div>
-      <div class="product-card"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍫</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck4_nom">Cookie Tout Choco — Crème Bueno</div><div class="prod-desc e" data-fk="ck4_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck4_prix">2,99€</span></div></div>
+      <div class="product-card" data-uid="ck1"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍪</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck1_nom">Cookie Cœur Caramel Beurre Salé</div><div class="prod-desc e" data-fk="ck1_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck1_prix">2,99€</span></div></div>
+      <div class="product-card" data-uid="ck2"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍪</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck2_nom">Cookie Cœur Spéculoos</div><div class="prod-desc e" data-fk="ck2_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck2_prix">2,99€</span></div></div>
+      <div class="product-card" data-uid="ck3"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍫</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck3_nom">Cookie Tout Choco — Pâte à Tartiner</div><div class="prod-desc e" data-fk="ck3_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck3_prix">2,99€</span></div></div>
+      <div class="product-card" data-uid="ck4"><div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button></div><div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍫</div><div class="prod-img-btn">📷 Photo</div></div><div class="prod-name e" data-fk="ck4_nom">Cookie Tout Choco — Crème Bueno</div><div class="prod-desc e" data-fk="ck4_desc">Cookie Breton artisanal</div><div class="prod-prices"><span class="ptag main e" data-fk="ck4_prix">2,99€</span></div></div>
     </div>
     <button class="add-btn" onclick="addCard('g-cookies','🍪')">+ Ajouter un cookie</button>
   </div>
@@ -1133,18 +1135,14 @@ function rmCard(btn){
   var uid=card.dataset.uid;
   card.remove();
   if(uid){
+    // Supprimer du nœud /products/ (produits dynamiques)
     db.ref(REF+"/products/"+uid).remove();
+    // Supprimer les champs individuels
     ["_nom","_desc","_prix","_alc","_offer","_status","_status_text","_img"].forEach(function(s){
       db.ref(REF+"/"+uid+s).remove();
     });
-  } else {
-    var fk=card.querySelector("[data-fk]");
-    if(fk){
-      var base=fk.dataset.fk.replace(/_[^_]+$/,"");
-      ["_nom","_desc","_prix","_alc","_offer","_status","_status_text","_img"].forEach(function(s){
-        db.ref(REF+"/"+base+s).remove();
-      });
-    }
+    // ✅ Marquer comme supprimé dans la liste noire (pour cartes hardcodées)
+    db.ref(REF+"/deleted/"+uid).set(true);
   }
   refreshPromos();
   toast("Produit supprimé !");
@@ -1708,6 +1706,13 @@ function applyAllData(data){
     var el=document.querySelector('[data-fk="'+key+'"]');
     if(el){if(el.classList.contains("editable-text"))el.innerHTML=val;else el.textContent=val;}
   });
+  // ✅ Masquer les cartes supprimées (liste noire)
+  if(data.deleted){
+    Object.keys(data.deleted).forEach(function(uid){
+      var card=document.querySelector('[data-uid="'+uid+'"]');
+      if(card) card.remove();
+    });
+  }
   veLoadSaved(data);
   setTimeout(refreshPromos,400);
 }
