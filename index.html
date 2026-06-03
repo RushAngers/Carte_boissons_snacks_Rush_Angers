@@ -440,6 +440,30 @@ footer strong{color:var(--rose-f)}
 .modal-btn.confirm{background:var(--rose);color:white}
 .modal-btn.cancel{background:#eee;color:#555}
 
+
+/* ══ PHOTO JEUX ══ */
+.jeu-card { text-align: left; }
+.jeu-photo {
+  width: 100%; height: 90px;
+  border-radius: 10px; margin-bottom: .55rem;
+  overflow: hidden; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; cursor: default;
+}
+.jeu-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.jeu-photo-ph { font-size: 2.2rem; opacity: .3; }
+.jeu-photo-btn {
+  position: absolute; inset: 0; background: rgba(0,0,0,.5);
+  color: white; font-size: .68rem; font-weight: 600;
+  display: none; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: 10px;
+}
+.edit-mode .jeu-photo { cursor: pointer; border: 2px dashed rgba(107,53,165,.35); }
+.edit-mode .jeu-photo:hover .jeu-photo-btn { display: flex; }
+.jeu-name { margin-top: .3rem; }
+.jeu-players { margin-top: .1rem; }
+.jeu-dispo { margin-top: .3rem; }
+
 </style>
 </head>
 <body>
@@ -489,6 +513,7 @@ footer strong{color:var(--rose-f)}
   <button class="nav-btn cat-tab-btn" data-sec="sec-snacks" onclick="showSecById('sec-snacks',this)">🍫 Snacking</button>
   <button class="nav-btn cat-tab-btn" data-sec="sec-jeux" onclick="showSecById('sec-jeux',this)">🎲 Jeux</button>
   <button class="nav-btn cat-tab-btn" data-sec="sec-promos" onclick="showSecById('sec-promos',this)">🔥 Promos</button>
+  <button class="nav-btn cat-tab-btn" data-sec="sec-goodies" onclick="showSecById('sec-goodies',this)">👕 Goodies</button>
   <div id="dyn-tabs"></div>
   <button id="add-cat-btn" onclick="openAddCatModal()">＋ Catégorie</button>
 </nav>
@@ -764,6 +789,63 @@ footer strong{color:var(--rose-f)}
   <div id="sub-vins" class="sub-s">
     <div class="sup-banner">
       <div class="sup-logo-div logo-CV"></div>
+      <div><div class="sup-name e" data-fk="sup_CV_nom">Château de la Viaudière</div><div class="sup-loc e" data-fk="sup_CV_loc">Domaine viticole bio · Champ-sur-Layon (49380)</div></div>
+      <div class="bio-badge">🌿 Bio</div>
+    </div>
+    <div class="products-grid" id="g-vins">
+      <div class="product-card" data-uid="cremant">
+        <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button><button class="offer-btn" onclick="openOfferModal(this)">🔥 Offre</button></div>
+        <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🥂</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-offer e" data-fk="cremant_offer"></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns"><button class="psb" onclick="openStatusModal(this)">📋 Statut</button></div>
+        <div class="bio-pill">BIO</div>
+        <div class="prod-name e" data-fk="cremant_nom">Crémant de Loire — Blanc Brut</div>
+        <div class="prod-desc e" data-fk="cremant_desc">Effervescent · Bio</div>
+        <span class="prod-alc has-alc e" data-fk="cremant_alc">12,5%</span>
+        <div class="prod-prices"><span class="ptag main e" data-fk="cremant_prix">14,90€</span></div>
+      </div>
+      <div class="product-card" data-uid="blanc">
+        <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button><button class="offer-btn" onclick="openOfferModal(this)">🔥 Offre</button></div>
+        <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍾</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-offer e" data-fk="blanc_offer"></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns"><button class="psb" onclick="openStatusModal(this)">📋 Statut</button></div>
+        <div class="bio-pill">BIO</div>
+        <div class="prod-name e" data-fk="blanc_nom">Vin Blanc — Sauvignon</div>
+        <div class="prod-desc e" data-fk="blanc_desc">Sec &amp; minéral · Bio</div>
+        <span class="prod-alc has-alc e" data-fk="blanc_alc">12%</span>
+        <div class="prod-prices"><span class="ptag main e" data-fk="blanc_prix">12,50€</span></div>
+      </div>
+      <div class="product-card" data-uid="rouge">
+        <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button><button class="offer-btn" onclick="openOfferModal(this)">🔥 Offre</button></div>
+        <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🍷</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-offer e" data-fk="rouge_offer"></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns"><button class="psb" onclick="openStatusModal(this)">📋 Statut</button></div>
+        <div class="bio-pill">BIO</div>
+        <div class="prod-name e" data-fk="rouge_nom">Vin Rouge — Tuilé</div>
+        <div class="prod-desc e" data-fk="rouge_desc">Charpenté · Bio</div>
+        <span class="prod-alc has-alc e" data-fk="rouge_alc">12%</span>
+        <div class="prod-prices"><span class="ptag main e" data-fk="rouge_prix">14,00€</span></div>
+      </div>
+      <div class="product-card" data-uid="rose">
+        <div class="cedit"><button class="ceb" onclick="upImg(this)">📷</button><button class="ceb del" onclick="rmCard(this)">✕</button><button class="offer-btn" onclick="openOfferModal(this)">🔥 Offre</button></div>
+        <div class="prod-img" onclick="imgClick(this)"><div class="prod-img-ph">🌸</div><div class="prod-img-btn">📷 Photo</div></div>
+        <div class="prod-offer e" data-fk="rose_offer"></div>
+        <div class="prod-status"></div>
+        <div class="prod-status-btns"><button class="psb" onclick="openStatusModal(this)">📋 Statut</button></div>
+        <div class="bio-pill">BIO</div>
+        <div class="prod-name e" data-fk="rose_nom">Vin Rosé — Cabernet d'Anjou</div>
+        <div class="prod-desc e" data-fk="rose_desc">Demi-sec &amp; fruité · Bio</div>
+        <span class="prod-alc has-alc e" data-fk="rose_alc">11%</span>
+        <div class="prod-prices"><span class="ptag main e" data-fk="rose_prix">10,60€</span></div>
+      </div>
+    </div>
+    <button class="add-btn" onclick="addCard('g-vins','🍷')">+ Ajouter un vin</button>
+  </div><div id="sub-vins" class="sub-s">
+    <div class="sup-banner">
+      <div class="sup-logo-div logo-CV"></div>
       <div><div class="sup-name">Château de la Viaudière</div><div class="sup-loc">Domaine viticole bio · Champ-sur-Layon (49380)</div></div>
       <div class="bio-badge">🌿 Bio</div>
     </div>
@@ -914,6 +996,22 @@ footer strong{color:var(--rose-f)}
   <div class="promo-sec-title">🎮 Codes et offres jeu</div>
   <div id="promos-codes"></div>
   <button class="add-promo-btn" onclick="openModal('addPromoModal')">+ Ajouter un code / offre</button>
+</div>
+
+
+<!-- ══════════ GOODIES ══════════ -->
+<div id="sec-goodies" class="section">
+  <div class="sup-banner" style="border-left-color:#6b35a5">
+    <div style="width:50px;height:50px;background:linear-gradient(135deg,#6b35a5,#48AAD0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">👕</div>
+    <div>
+      <div class="sup-name e" data-fk="goodies_titre">Rush Action Game — Goodies</div>
+      <div class="sup-loc e" data-fk="goodies_sous">T-shirts, accessoires et produits dérivés</div>
+    </div>
+  </div>
+  <div class="products-grid" id="g-goodies">
+    <!-- Produits ajoutés en mode édition -->
+  </div>
+  <button class="add-btn" onclick="addCard('g-goodies','👕')">+ Ajouter un goodie</button>
 </div>
 
 <footer>
@@ -1896,11 +1994,18 @@ function renderJeuCard(jid,jd){
   var g=document.getElementById("jeux-grid");
   var d=document.createElement("div");d.className="jeu-card";d.dataset.jeuId=jid;
   var dispo=jd.dispo!==false;
+  var photoHtml=jd.img
+    ?'<img src="'+jd.img+'" alt="'+jd.name+'">'
+    :'<div class="jeu-photo-ph">'+(jd.emoji||"🎲")+'</div>';
   d.innerHTML='<div class="jeu-edit-btns">'+
+    '<button class="ceb" onclick="upImgJeu(this)">📷</button>'+
     '<button class="ceb" data-jeu-id="'+jid+'" onclick="toggleJeuDispo(this)">'+(dispo?"❌ Indispo":"✅ Dispo")+'</button>'+
     '<button class="ceb del" data-jeu-id="'+jid+'" onclick="rmJeu(this)">✕</button>'+
   '</div>'+
-  '<span class="jeu-emoji e" data-fk="jeu_'+jid+'_emoji">'+(jd.emoji||"🎲")+'</span>'+
+  '<div class="jeu-photo" onclick="jeuPhotoClick(this)">'+
+    photoHtml+
+    '<div class="jeu-photo-btn">📷 Photo</div>'+
+  '</div>'+
   '<div class="jeu-name e" data-fk="jeu_'+jid+'_name">'+jd.name+'</div>'+
   '<div class="jeu-players e" data-fk="jeu_'+jid+'_players">'+(jd.players||"")+'</div>'+
   '<span class="jeu-dispo '+(dispo?"ok":"non")+'" data-jeu-id="'+jid+'">'+(dispo?"✅ Disponible":"❌ Indisponible")+'</span>';
@@ -1942,6 +2047,35 @@ deactivateEdit=function(){
   document.querySelectorAll(".jeu-card .e,.promo-card .e").forEach(function(el){el.contentEditable="false";});
   document.querySelectorAll(".promo-card .ceb.del").forEach(function(b){b.style.display="none";});
 };
+
+
+// ══ PHOTO JEUX ══
+function jeuPhotoClick(wrap){
+  if(!editMode) return;
+  upImgJeuWrap(wrap);
+}
+function upImgJeu(btn){
+  var card=btn.closest(".jeu-card");
+  var wrap=card.querySelector(".jeu-photo");
+  upImgJeuWrap(wrap);
+}
+function upImgJeuWrap(wrap){
+  var card=wrap.closest(".jeu-card");
+  var jid=card.dataset.jeuId;
+  var inp=document.createElement("input");
+  inp.type="file"; inp.accept="image/*";
+  inp.onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    toast("⏳ Upload photo jeu...");
+    var ref=storage.ref("jeux/"+jid+"_"+Date.now());
+    ref.put(f).then(function(){ return ref.getDownloadURL(); }).then(function(url){
+      wrap.innerHTML='<img src="'+url+'" alt="jeu"><div class="jeu-photo-btn">📷 Changer</div>';
+      db.ref(REF+"/jeux/"+jid+"/img").set(url);
+      toast("✅ Photo ajoutée !");
+    }).catch(function(err){ toast("❌ "+err.message); });
+  };
+  inp.click();
+}
 
 </script>
 </body>
