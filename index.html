@@ -1748,7 +1748,7 @@ function renderDynCat(catId,catData){
   // Section
   var sec=document.createElement("div");
   sec.id="sec-"+catId;sec.className="section dyn-section";
-  sec.innerHTML='<div style="padding:.8rem 1rem .2rem;font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--rose-f)">'+catData.emoji+" "+catData.name+"</div>";
+  sec.innerHTML='<div style="padding:.8rem 1rem .2rem;font-family:&quot;Playfair Display&quot;,serif;font-size:1.1rem;color:var(--rose-f)">'+catData.emoji+" "+catData.name+"</div>";
   var gridId=catId+"_main";
   var grid=document.createElement("div");grid.id=gridId;grid.className="products-grid";
   var addBtn=document.createElement("button");addBtn.className="add-btn";addBtn.textContent="+ Ajouter un produit";
