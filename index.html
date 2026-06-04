@@ -1129,6 +1129,16 @@ function activateEdit() {
   document.getElementById("editHint").textContent = "Cliquez sur un texte pour modifier";
   document.getElementById("saveBtn").style.display = "inline-block";
   document.getElementById("veBtn").style.display = "inline-block";
+  // Attacher listeners blur sur les softs classiques hardcodés
+  document.querySelectorAll("#classic-list .e").forEach(function(el){
+    if(!el.dataset.fb){
+      el.dataset.fb="1";
+      el.addEventListener("blur",function(){
+        var k=this.dataset.fk, v=this.textContent.trim();
+        if(k&&v) saveToFirebase(k,v);
+      });
+    }
+  });
   // Activer editable-text
   document.querySelectorAll(".editable-text").forEach(function(el) {
     el.contentEditable = "true";
@@ -1245,7 +1255,18 @@ function rmCard(btn){
   refreshPromos();
   toast("Produit supprimé !");
 }
-function rmClassic(btn){btn.closest(".classic-item").remove()}
+function rmClassic(btn){
+  var item = btn.closest(".classic-item");
+  var fkEl = item.querySelector("[data-fk]");
+  if(fkEl){
+    var base = fkEl.dataset.fk.replace(/_[^_]+$/, "");
+    db.ref(REF+"/"+base+"_nom").remove();
+    db.ref(REF+"/"+base+"_prix").remove();
+    db.ref(REF+"/deleted_soft/"+base).set(true);
+  }
+  item.remove();
+  toast("Soft supprimé !");
+}
 
 
 
@@ -1711,28 +1732,31 @@ function createCardInGrid(g,uid,emoji,nom,desc,prix,status,statusText,alc,offer)
   if(editMode){ var n=d.querySelector(".prod-name"); if(n) n.focus(); }
 }
 
-function addSoft() {
-  var l = document.getElementById('classic-list');
-  var uid = 'soft_' + Date.now();
-  var d = document.createElement('div');
-  d.className = 'classic-item';
-  d.innerHTML =
-    '<span class="classic-name e" data-fk="' + uid + '_nom" contenteditable="true">Nouveau soft</span>' +
-    '<span style="display:flex;align-items:center">' +
-      '<span class="classic-price e" data-fk="' + uid + '_prix" contenteditable="true">2,90€</span>' +
-      '<button class="classic-del" style="display:inline-block" onclick="rmClassic(this)">✕</button>' +
+function addSoft(){
+  var l=document.getElementById("classic-list");
+  var uid="soft_"+Date.now();
+  var d=document.createElement("div");
+  d.className="classic-item";
+  d.dataset.uid=uid;
+  d.innerHTML=
+    '<span class="classic-name e" data-fk="'+uid+'_nom" contenteditable="true">Nouveau soft</span>'+
+    '<span style="display:flex;align-items:center">'+
+      '<span class="classic-price e" data-fk="'+uid+'_prix" contenteditable="true">2,90€</span>'+
+      '<button class="classic-del" style="display:inline-block" onclick="rmClassic(this)">✕</button>'+
     '</span>';
-  d.querySelectorAll('.e').forEach(function(el) {
-    el.addEventListener('blur', function() {
-      var k = this.dataset.fk, v = this.textContent.trim();
-      if (k && v) saveToFirebase(k, v);
+  // Listeners blur → Firebase
+  d.querySelectorAll(".e").forEach(function(el){
+    el.addEventListener("blur",function(){
+      var k=this.dataset.fk, v=this.textContent.trim();
+      if(k&&v) saveToFirebase(k,v);
     });
   });
   l.appendChild(d);
-  saveToFirebase('soft_' + uid + '_nom', 'Nouveau soft');
-  saveToFirebase('soft_' + uid + '_prix', '2,90€');
-  d.querySelector('.e').focus();
-  toast('Soft ajouté !');
+  // Sauver création dans Firebase
+  saveToFirebase(uid+"_nom","Nouveau soft");
+  saveToFirebase(uid+"_prix","2,90€");
+  d.querySelector(".e").focus();
+  toast("Soft ajouté !");
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1809,6 +1833,13 @@ function applyAllData(data){
     Object.keys(data.deleted).forEach(function(uid){
       var card=document.querySelector('[data-uid="'+uid+'"]');
       if(card) card.remove();
+    });
+  }
+  // Softs supprimés (liste noire)
+  if(data.deleted_soft){
+    Object.keys(data.deleted_soft).forEach(function(uid){
+      var el=document.querySelector("#classic-list [data-fk=\""+uid+"_nom\"]");
+      if(el) el.closest(".classic-item").remove();
     });
   }
   veLoadSaved(data);
