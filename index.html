@@ -1058,6 +1058,7 @@ footer strong{color:var(--rose-f)}
 
 // Écoute Firebase en temps réel dès que la page est prête
 document.addEventListener("DOMContentLoaded", function() {
+  initSoftsInFirebase();
   db.ref(REF).on("value", function(snapshot) {
     const data = snapshot.val();
     if (data) {
@@ -1082,6 +1083,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
+
+var _userEditing = false;
 
 function saveToFirebase(key, value) {
   db.ref(REF + "/" + key).set(value)
@@ -1129,15 +1132,21 @@ function activateEdit() {
   document.getElementById("editHint").textContent = "Cliquez sur un texte pour modifier";
   document.getElementById("saveBtn").style.display = "inline-block";
   document.getElementById("veBtn").style.display = "inline-block";
-  // Attacher listeners blur sur les softs classiques hardcodés
+  // Listeners softs classiques — AVANT le listener générique
   document.querySelectorAll("#classic-list .e").forEach(function(el){
-    if(!el.dataset.fb){
-      el.dataset.fb="1";
-      el.addEventListener("blur",function(){
-        var k=this.dataset.fk, v=this.textContent.trim();
-        if(k&&v) saveToFirebase(k,v);
-      });
-    }
+    // Supprimer ancien listener si existe (reset propre)
+    if(el._softBlur) el.removeEventListener("blur", el._softBlur);
+    el._softBlur = function(){
+      var k=this.dataset.fk;
+      var v=this.textContent.trim();
+      if(k) saveToFirebase(k, v||"");
+    };
+    el.addEventListener("blur", el._softBlur);
+    // focus : signaler qu'on édite
+    if(el._softFocus) el.removeEventListener("focus", el._softFocus);
+    el._softFocus = function(){ _userEditing = true; };
+    el.addEventListener("focus", el._softFocus);
+    el.addEventListener("blur", function(){ setTimeout(function(){ _userEditing = false; }, 500); });
   });
   // Activer editable-text
   document.querySelectorAll(".editable-text").forEach(function(el) {
@@ -1826,7 +1835,10 @@ function applyAllData(data){
     if(key.startsWith("ve_ve-")) return;
     // Textes
     var el=document.querySelector('[data-fk="'+key+'"]');
-    if(el){if(el.classList.contains("editable-text"))el.innerHTML=val;else el.textContent=val;}
+    if(el && el !== document.activeElement){
+      if(el.classList.contains("editable-text")) el.innerHTML=val;
+      else el.textContent=val;
+    }
   });
   // ✅ Masquer les cartes supprimées (liste noire)
   if(data.deleted){
@@ -2106,6 +2118,37 @@ function upImgJeuWrap(wrap){
     }).catch(function(err){ toast("❌ "+err.message); });
   };
   inp.click();
+}
+
+
+// ══ INIT SOFTS CLASSIQUES DANS FIREBASE (si pas encore sauvegardés) ══
+function initSoftsInFirebase(){
+  db.ref(REF+"/carte").once("value").then(function(){
+    // Vérifier si les softs hardcodés sont déjà dans Firebase
+    db.ref(REF+"/soft_coca_nom").once("value").then(function(snap){
+      if(!snap.val()){
+        // Première fois : sauvegarder toutes les valeurs hardcodées
+        document.querySelectorAll("#classic-list .classic-item").forEach(function(item){
+          var nomEl=item.querySelector("[data-fk$='_nom']");
+          var prixEl=item.querySelector("[data-fk$='_prix']");
+          if(nomEl&&prixEl&&nomEl.dataset.fk){
+            var base=nomEl.dataset.fk.replace("_nom","");
+            // Sauver seulement si pas dans deleted_soft
+            db.ref(REF+"/deleted_soft/"+base).once("value").then(function(ds){
+              if(!ds.val()){
+                db.ref(REF+"/"+nomEl.dataset.fk).once("value").then(function(s){
+                  if(!s.val()) saveToFirebase(nomEl.dataset.fk, nomEl.textContent.trim());
+                });
+                db.ref(REF+"/"+prixEl.dataset.fk).once("value").then(function(s){
+                  if(!s.val()) saveToFirebase(prixEl.dataset.fk, prixEl.textContent.trim());
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  });
 }
 
 </script>
