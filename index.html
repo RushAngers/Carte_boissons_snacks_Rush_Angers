@@ -1058,7 +1058,6 @@ footer strong{color:var(--rose-f)}
 
 // Écoute Firebase en temps réel dès que la page est prête
 document.addEventListener("DOMContentLoaded", function() {
-  initSoftsInFirebase();
   db.ref(REF).on("value", function(snapshot) {
     const data = snapshot.val();
     if (data) {
@@ -1083,8 +1082,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
-
-var _userEditing = false;
 
 function saveToFirebase(key, value) {
   db.ref(REF + "/" + key).set(value)
@@ -1132,21 +1129,15 @@ function activateEdit() {
   document.getElementById("editHint").textContent = "Cliquez sur un texte pour modifier";
   document.getElementById("saveBtn").style.display = "inline-block";
   document.getElementById("veBtn").style.display = "inline-block";
-  // Listeners softs classiques — AVANT le listener générique
+  // Attacher listeners blur sur les softs classiques hardcodés
   document.querySelectorAll("#classic-list .e").forEach(function(el){
-    // Supprimer ancien listener si existe (reset propre)
-    if(el._softBlur) el.removeEventListener("blur", el._softBlur);
-    el._softBlur = function(){
-      var k=this.dataset.fk;
-      var v=this.textContent.trim();
-      if(k) saveToFirebase(k, v||"");
-    };
-    el.addEventListener("blur", el._softBlur);
-    // focus : signaler qu'on édite
-    if(el._softFocus) el.removeEventListener("focus", el._softFocus);
-    el._softFocus = function(){ _userEditing = true; };
-    el.addEventListener("focus", el._softFocus);
-    el.addEventListener("blur", function(){ setTimeout(function(){ _userEditing = false; }, 500); });
+    if(!el.dataset.fb){
+      el.dataset.fb="1";
+      el.addEventListener("blur",function(){
+        var k=this.dataset.fk, v=this.textContent.trim();
+        if(k&&v) saveToFirebase(k,v);
+      });
+    }
   });
   // Activer editable-text
   document.querySelectorAll(".editable-text").forEach(function(el) {
@@ -1265,15 +1256,16 @@ function rmCard(btn){
   toast("Produit supprimé !");
 }
 function rmClassic(btn){
-  var item = btn.closest(".classic-item");
-  var fkEl = item.querySelector("[data-fk]");
-  if(fkEl){
-    var base = fkEl.dataset.fk.replace(/_[^_]+$/, "");
-    db.ref(REF+"/"+base+"_nom").remove();
-    db.ref(REF+"/"+base+"_prix").remove();
-    db.ref(REF+"/deleted_soft/"+base).set(true);
-  }
+  var item=btn.closest(".classic-item");
+  var uid=item.dataset.uid;
   item.remove();
+  if(uid){
+    // Supprimer de /softs_classiques/
+    db.ref(REF+"/softs_classiques/"+uid).remove();
+    // Compatibilité ancien système
+    db.ref(REF+"/"+uid+"_nom").remove();
+    db.ref(REF+"/"+uid+"_prix").remove();
+  }
   toast("Soft supprimé !");
 }
 
@@ -1744,28 +1736,14 @@ function createCardInGrid(g,uid,emoji,nom,desc,prix,status,statusText,alc,offer)
 function addSoft(){
   var l=document.getElementById("classic-list");
   var uid="soft_"+Date.now();
-  var d=document.createElement("div");
-  d.className="classic-item";
-  d.dataset.uid=uid;
-  d.innerHTML=
-    '<span class="classic-name e" data-fk="'+uid+'_nom" contenteditable="true">Nouveau soft</span>'+
-    '<span style="display:flex;align-items:center">'+
-      '<span class="classic-price e" data-fk="'+uid+'_prix" contenteditable="true">2,90€</span>'+
-      '<button class="classic-del" style="display:inline-block" onclick="rmClassic(this)">✕</button>'+
-    '</span>';
-  // Listeners blur → Firebase
-  d.querySelectorAll(".e").forEach(function(el){
-    el.addEventListener("blur",function(){
-      var k=this.dataset.fk, v=this.textContent.trim();
-      if(k&&v) saveToFirebase(k,v);
-    });
-  });
+  // Créer le DOM
+  var d=creerSoftItem(uid,"Nouveau soft","2,90€",true);
   l.appendChild(d);
-  // Sauver création dans Firebase
-  saveToFirebase(uid+"_nom","Nouveau soft");
-  saveToFirebase(uid+"_prix","2,90€");
   d.querySelector(".e").focus();
-  toast("Soft ajouté !");
+  // Sauver dans Firebase sous /softs_classiques/{uid}
+  db.ref(REF+"/softs_classiques/"+uid).set({nom:"Nouveau soft",prix:"2,90€"})
+    .then(function(){ toast("Soft ajouté !"); })
+    .catch(function(e){ toast("Erreur: "+e.message); });
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1785,6 +1763,19 @@ function applyAllData(data){
       if(!document.querySelector('[data-uid="'+uid+'"]')){
         var g=document.getElementById(p.gridId);
         if(g) createCardInGrid(g,uid,p.emoji||"📦",p.nom||"Produit",p.desc||"",p.prix||"0,00€",p.status||"",p.statusText||"",p.alc||"",p.offer||"");
+      }
+    });
+  }
+  // Softs classiques dynamiques
+  if(data.softs_classiques){
+    Object.entries(data.softs_classiques).forEach(function(e){
+      var uid=e[0], s=e[1];
+      if(!document.querySelector('[data-uid="'+uid+'"]')){
+        var l=document.getElementById("classic-list");
+        if(l){
+          var d=creerSoftItem(uid,s.nom||"Soft",s.prix||"2,90€",false);
+          l.appendChild(d);
+        }
       }
     });
   }
@@ -1835,10 +1826,7 @@ function applyAllData(data){
     if(key.startsWith("ve_ve-")) return;
     // Textes
     var el=document.querySelector('[data-fk="'+key+'"]');
-    if(el && el !== document.activeElement){
-      if(el.classList.contains("editable-text")) el.innerHTML=val;
-      else el.textContent=val;
-    }
+    if(el){if(el.classList.contains("editable-text"))el.innerHTML=val;else el.textContent=val;}
   });
   // ✅ Masquer les cartes supprimées (liste noire)
   if(data.deleted){
@@ -2121,34 +2109,35 @@ function upImgJeuWrap(wrap){
 }
 
 
-// ══ INIT SOFTS CLASSIQUES DANS FIREBASE (si pas encore sauvegardés) ══
-function initSoftsInFirebase(){
-  db.ref(REF+"/carte").once("value").then(function(){
-    // Vérifier si les softs hardcodés sont déjà dans Firebase
-    db.ref(REF+"/soft_coca_nom").once("value").then(function(snap){
-      if(!snap.val()){
-        // Première fois : sauvegarder toutes les valeurs hardcodées
-        document.querySelectorAll("#classic-list .classic-item").forEach(function(item){
-          var nomEl=item.querySelector("[data-fk$='_nom']");
-          var prixEl=item.querySelector("[data-fk$='_prix']");
-          if(nomEl&&prixEl&&nomEl.dataset.fk){
-            var base=nomEl.dataset.fk.replace("_nom","");
-            // Sauver seulement si pas dans deleted_soft
-            db.ref(REF+"/deleted_soft/"+base).once("value").then(function(ds){
-              if(!ds.val()){
-                db.ref(REF+"/"+nomEl.dataset.fk).once("value").then(function(s){
-                  if(!s.val()) saveToFirebase(nomEl.dataset.fk, nomEl.textContent.trim());
-                });
-                db.ref(REF+"/"+prixEl.dataset.fk).once("value").then(function(s){
-                  if(!s.val()) saveToFirebase(prixEl.dataset.fk, prixEl.textContent.trim());
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+// ══ HELPER : créer un item soft classique ══
+function creerSoftItem(uid, nom, prix, isNew){
+  var d=document.createElement("div");
+  d.className="classic-item";
+  d.dataset.uid=uid;
+  d.innerHTML=
+    '<span class="classic-name e" data-fk="'+uid+'_nom">'+nom+'</span>'+
+    '<span style="display:flex;align-items:center">'+
+      '<span class="classic-price e" data-fk="'+uid+'_prix">'+prix+'</span>'+
+      '<button class="classic-del" onclick="rmClassic(this)">✕</button>'+
+    '</span>';
+  // Listeners blur → Firebase
+  d.querySelectorAll(".e").forEach(function(el){
+    if(!el._softBlur){
+      el._softBlur=function(){
+        var k=this.dataset.fk, v=this.textContent.trim();
+        if(!k) return;
+        // Mettre à jour dans /softs_classiques/{uid}
+        var field=k.endsWith("_nom")?"nom":"prix";
+        db.ref(REF+"/softs_classiques/"+uid+"/"+field).set(v||"");
+      };
+      el.addEventListener("blur",el._softBlur);
+    }
   });
+  // contentEditable si mode édition actif
+  if(editMode||isNew){
+    d.querySelectorAll(".e").forEach(function(el){el.contentEditable="true";});
+  }
+  return d;
 }
 
 </script>
